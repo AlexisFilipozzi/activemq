@@ -119,7 +119,7 @@ class Init():
 
         self.add_end_file(ACTIVEMQ_CONF + "/jmx.access", user + " " + role)
         self.add_end_file(ACTIVEMQ_CONF + "/jmx.password", user + " " + password)
-        self.replace_all(ACTIVEMQ_CONF + "/activemq.xml", '<managementContext createConnector="false"/>', '<managementContext connectorPort="1099"\/>')
+        self.replace_all(ACTIVEMQ_CONF + "/activemq.xml", '<managementContext createConnector="false"/>', '<managementContext connectorPort="1099"/>')
         self.add_end_file(ACTIVEMQ_HOME + "/bin/env",
         'ACTIVEMQ_OPTS="$ACTIVEMQ_OPTS -Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.rmi.port=1099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=true -Dcom.sun.management.jmxremote.password.file=' + ACTIVEMQ_CONF + '/jmx.password -Dcom.sun.management.jmxremote.access.file=' + ACTIVEMQ_CONF + '/jmx.access"')
         # TODO set permissions over jmx.password to 600
