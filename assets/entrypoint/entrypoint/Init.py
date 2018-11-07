@@ -12,8 +12,6 @@ ACTIVEMQ_CONF = ACTIVEMQ_HOME + '/conf.tmp'
 
 
 class Init():
-
-
     def replace_all(self, file, searchRegex, replaceExp):
       """ Replace String in file with regex
       :param file: The file name where you should to modify the string
@@ -21,7 +19,6 @@ class Init():
       :param replaceExp: The string replacement
       :return:
       """
-
       regex = re.compile(searchRegex, re.IGNORECASE)
 
       f = open(file,'r')
@@ -38,7 +35,6 @@ class Init():
 
       f.close()
 
-
     def add_end_file(self, file, line):
         """ Add line at the end of file
 
@@ -48,8 +44,6 @@ class Init():
         """
         with open(file, "a") as myFile:
             myFile.write("\n" + line + "\n")
-
-
 
     def do_setting_activemq_users(self, login, password):
         global ACTIVEMQ_HOME
@@ -64,7 +58,6 @@ class Init():
     def do_remove_default_account(self):
         global ACTIVEMQ_HOME
 
-
         self.replace_all(ACTIVEMQ_CONF + "/users.properties","admin=admin", "")
         self.replace_all(ACTIVEMQ_CONF + "/jetty-realm.properties", "admin: admin, admin", "")
         self.replace_all(ACTIVEMQ_CONF + "/jetty-realm.properties", "user: user, user", "")
@@ -74,8 +67,6 @@ class Init():
         self.replace_all(ACTIVEMQ_CONF + "/credentials.properties", "activemq\.username=system", "")
         self.replace_all(ACTIVEMQ_CONF + "/credentials.properties", "activemq\.password=manager", "")
         self.replace_all(ACTIVEMQ_CONF + "/credentials.properties", "guest\.password=password", "")
-
-
 
     def do_setting_activemq_credential(self, user, password):
         global ACTIVEMQ_HOME
@@ -89,8 +80,6 @@ class Init():
         self.add_end_file(ACTIVEMQ_CONF + "/credentials.properties", "activemq.username=" + user)
         self.add_end_file(ACTIVEMQ_CONF + "/credentials.properties", "activemq.password=" + password)
 
-
-
     def do_setting_activemq_groups(self, group, users):
         global ACTIVEMQ_HOME
 
@@ -101,7 +90,6 @@ class Init():
             self.add_end_file(ACTIVEMQ_CONF + "/groups.properties", group + "=")
         else:
             self.add_end_file(ACTIVEMQ_CONF + "/groups.properties", group + "=" + users)
-
 
     def do_setting_activemq_web_access(self, role, user, password):
         global ACTIVEMQ_HOME
@@ -115,9 +103,7 @@ class Init():
         if password is None or password == "":
             raise KeyError("You must set the password")
 
-
         self.add_end_file(ACTIVEMQ_CONF + "/jetty-realm.properties", user + ": " + password + ", " +role);
-
 
     def do_setting_activemq_jmx_access(self, role, user, password):
         global ACTIVEMQ_HOME
@@ -133,7 +119,10 @@ class Init():
 
         self.add_end_file(ACTIVEMQ_CONF + "/jmx.access", user + " " + role)
         self.add_end_file(ACTIVEMQ_CONF + "/jmx.password", user + " " + password)
-
+        self.replace_all(ACTIVEMQ_CONF + "/activemq.xml", '<managementContext createConnector="false"/>', '<managementContext connectorPort="1099"\/>')
+        self.add_end_file(ACTIVEMQ_HOME + "/bin/env",
+        'ACTIVEMQ_OPTS="$ACTIVEMQ_OPTS -Djava.rmi.server.hostname=0.0.0.0 -Dcom.sun.management.jmxremote.port=1099 -Dcom.sun.management.jmxremote.rmi.port=1099 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=true -Dcom.sun.management.jmxremote.password.file=' + ACTIVEMQ_CONF + '/jmx.password -Dcom.sun.management.jmxremote.access.file=' + ACTIVEMQ_CONF + '/jmx.access"')
+        # TODO set permissions over jmx.password to 600
 
     def do_setting_activemq_log4j(self, loglevel):
         global ACTIVEMQ_HOME
@@ -144,9 +133,7 @@ class Init():
         self.replace_all(ACTIVEMQ_CONF + "/log4j.properties", "log4j\.rootLogger=[^,]+", "log4j.rootLogger=" + loglevel)
         self.replace_all(ACTIVEMQ_CONF + "/log4j.properties", "log4j\.logger\.org\.apache\.activemq\.audit=[^,]+", "log4j.logger.org.apache.activemq.audit=" + loglevel)
 
-
     def do_setting_activemq_main(self, name, messageLimit, storageUsage, tempUsage, maxConnection, frameSize, topics, queues, enabledScheduler, enabledAuth):
-
         if name is None or name == "":
             raise KeyError("You must set the name")
 
@@ -230,7 +217,6 @@ class Init():
         self.replace_all(ACTIVEMQ_HOME + "/bin/linux-x86-64/wrapper.conf", "#?wrapper\.java\.initmemory=\d+", 'wrapper.java.initmemory=' + str(minMemoryInMB))
         self.replace_all(ACTIVEMQ_HOME + "/bin/linux-x86-64/wrapper.conf", "#?wrapper\.java\.maxmemory=\d+", 'wrapper.java.maxmemory=' + str(maxMemoryInMb))
 
-
     def do_init_activemq(self):
 
         # We change the activemq launcher to start activemq with activmq user
@@ -245,7 +231,6 @@ class Init():
         # We replace the log output
         self.replace_all(ACTIVEMQ_CONF + "/log4j.properties", "\$\{activemq\.base\}\/data\/", "/var/log/activemq/")
         self.replace_all(ACTIVEMQ_HOME + "/bin/linux-x86-64/wrapper.conf" ,"wrapper\.logfile=%ACTIVEMQ_DATA%\/wrapper\.log", "wrapper.logfile=/var/log/activemq/wrapper.log")
-
 
     def setting_all(self):
         # We look if we must remove default account
@@ -316,16 +301,11 @@ class Init():
         self.do_setting_activemq_wrapper(os.getenv('ACTIVEMQ_MIN_MEMORY', '128'),
                                                os.getenv('ACTIVEMQ_MAX_MEMORY', '1024'))
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     # We move all config file on temporary folder (Fix bug # 4)
     shutil.rmtree(ACTIVEMQ_CONF, ignore_errors=True);
     shutil.copytree(ACTIVEMQ_HOME + "/conf/", ACTIVEMQ_CONF);
-
-    # We fix right on volume
-    os.system("chown -R activemq:activemq /data/activemq")
-    os.system("chown -R activemq:activemq " + ACTIVEMQ_CONF)
-    os.system("chown -R activemq:activemq /var/log/activemq")
 
     serviceRun = Init()
     serviceRun.setting_all()

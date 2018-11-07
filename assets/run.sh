@@ -1,4 +1,5 @@
 #!/bin/sh
 
 python /app/entrypoint/Init.py
-exec /usr/bin/supervisord -n -c /etc/supervisor/supervisord.conf
+chmod 600 ${ACTIVEMQ_CONFIG_DIR}/jmx.password
+exec /opt/activemq/bin/activemq console
